@@ -2,3 +2,4 @@ tags
 *.o
 *.dSYM
 cworker
+client_task

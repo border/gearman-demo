@@ -7,7 +7,8 @@ LIBS := $(LIBS) -L$(GEARMAN_PATH)/lib -lgearman
 
 all:
 	gcc -o cworker cworker.c $(FLGAS) $(LDFLAGS) $(LIBS)
+	gcc -o client_task client_task.c $(FLGAS) $(LDFLAGS) $(LIBS)
 
 clean:
-	rm -rf *.o cworker
+	rm -rf *.o cworker client_task
 
