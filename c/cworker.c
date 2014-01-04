@@ -21,11 +21,11 @@ void *doing_work(gearman_job_st *job, void *context, size_t *result_size, gearma
     workloadsize = gearman_job_workload_size(job); //how big is the workload?
 
     //Copy the workload into a usable string
-    char workload[workloadsize+2];
+    char *workload = malloc(workloadsize + 1);
     strncpy(workload, (const char*)gearman_job_workload(job), workloadsize);
 
     //Do your work here
-    puts(workload);
+    printf("%s\n", workload);
 
     //Not passing any result information back at the moment
     result_size = 0;
@@ -34,6 +34,7 @@ void *doing_work(gearman_job_st *job, void *context, size_t *result_size, gearma
      * all we're doing here is just printing the workload
      */
     *ret_ptr = GEARMAN_SUCCESS;
+    free(workload);
 
     return 0;
 }

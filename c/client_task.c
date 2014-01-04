@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <libgearman/gearman.h>
 
+const char *image_value = "Image Argument Values";
+
 int main(void)
 {
     gearman_client_st *client = gearman_client_create(NULL);
@@ -26,7 +28,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    gearman_argument_t value= gearman_argument_make(0, 0, "image Me", strlen("image Me"));
+    gearman_argument_t value= gearman_argument_make(0, 0, image_value, strlen(image_value));
 
     gearman_task_st *task= gearman_execute(client, 
             "image", strlen("image"),  // function
