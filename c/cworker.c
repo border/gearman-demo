@@ -12,9 +12,10 @@
 #include <stdio.h>
 #include <libgearman/gearman.h>
 
-void *doing_work(gearman_job_st *job, void *context, size_t *result_size, gearman_return_t *ret_ptr){
+void *doing_image_work(gearman_job_st *job, void *context, size_t *result_size, gearman_return_t *ret_ptr){
 
     int workloadsize;
+    char *retstr = "doing_image_work return";
 
     /* contect is unused */
     context = context;
@@ -22,13 +23,15 @@ void *doing_work(gearman_job_st *job, void *context, size_t *result_size, gearma
 
     //Copy the workload into a usable string
     char *workload = malloc(workloadsize + 1);
+    memset(workload, '\0', workloadsize + 1);
+
     strncpy(workload, (const char*)gearman_job_workload(job), workloadsize);
 
     //Do your work here
     printf("%s\n", workload);
 
     //Not passing any result information back at the moment
-    result_size = 0;
+    *result_size = strlen(retstr);
 
     /* Should do some checks to monitor for fails
      * all we're doing here is just printing the workload
@@ -36,7 +39,7 @@ void *doing_work(gearman_job_st *job, void *context, size_t *result_size, gearma
     *ret_ptr = GEARMAN_SUCCESS;
     free(workload);
 
-    return 0;
+    return strdup(retstr);
 }
 
 
@@ -53,7 +56,7 @@ int main(void){
 
     //register function, (worker, job_queue_name, timeout, function_to_do_work, context)
     printf("Register 'image' function\n");
-    ret = gearman_worker_add_function(worker,"image",0,doing_work,NULL);
+    ret = gearman_worker_add_function(worker,"image",0,doing_image_work,NULL);
     if(gearman_failed(ret)){
         return EXIT_FAILURE;
     }

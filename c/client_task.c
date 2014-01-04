@@ -18,16 +18,7 @@
 
 const char *image_value = "Image Argument Values";
 
-int main(void)
-{
-    gearman_client_st *client = gearman_client_create(NULL);
-
-    gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
-    if (gearman_failed(ret))
-    {
-        return EXIT_FAILURE;
-    }
-
+int image_execute(gearman_client_st *client) {
     gearman_argument_t value= gearman_argument_make(0, 0, image_value, strlen(image_value));
 
     gearman_task_st *task= gearman_execute(client, 
@@ -48,8 +39,24 @@ int main(void)
     {
         // Make use of value
         gearman_result_st *result= gearman_task_result(task);
-        printf("result: %d-%s\n", (int)gearman_result_size(result), gearman_result_value(result));
+        printf("result size:%d, str: '%s'\n", (int)gearman_result_size(result), gearman_result_value(result));
+    } else {
+        return EXIT_FAILURE;
     }
+    return EXIT_SUCCESS;
+}
+
+int main(void)
+{
+    gearman_client_st *client = gearman_client_create(NULL);
+
+    gearman_return_t ret= gearman_client_add_server(client, "localhost", 4730);
+    if (gearman_failed(ret))
+    {
+        return EXIT_FAILURE;
+    }
+    // Image execute
+    ret = image_execute(client);
 
     gearman_client_free(client);
 
