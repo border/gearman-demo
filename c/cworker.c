@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <libgearman/gearman.h>
 
+
 void *doing_image_work(gearman_job_st *job, void *context, size_t *result_size, gearman_return_t *ret_ptr){
 
     int workloadsize;
@@ -42,6 +43,60 @@ void *doing_image_work(gearman_job_st *job, void *context, size_t *result_size, 
     return strdup(retstr);
 }
 
+static void *reverse(gearman_job_st *job, void *context,
+                     size_t *result_size, gearman_return_t *ret_ptr)
+{
+
+    int workloadsize;
+    char *retstr = "doing_reverse_work return";
+
+    /* contect is unused */
+    context = context;
+    workloadsize = gearman_job_workload_size(job); //how big is the workload?
+
+    //Copy the workload into a usable string
+    const char *workload= (const char *)gearman_job_workload(job);
+
+    printf("%s\n", workload);
+
+    char *result = malloc(workloadsize + 1);
+    memset(result, '\0', workloadsize + 1);
+
+    for (size_t y= 0, x= workloadsize; x; x--, y++) {
+        result[y]= ((uint8_t *)workload)[x - 1];
+    }
+
+    printf("%s\n", result);
+
+    for (size_t y= 0, x= workloadsize; x; x--, y++) {
+        if (gearman_failed(gearman_job_send_data(job, &result[y], 1))) {
+            printf("Job send data error\n");
+            return NULL;
+        }
+
+        if (gearman_failed(gearman_job_send_status(job, (uint32_t)y, (uint32_t)workloadsize)))
+        {
+            printf("Job send status error\n");
+            return NULL;
+        }
+        sleep(1);
+    }
+
+    //gearman_job_handle(job);
+
+    //gearman_job_unique(job);
+
+    //Not passing any result information back at the moment
+    *result_size = strlen(retstr);
+
+    /* Should do some checks to monitor for fails
+     * all we're doing here is just printing the workload
+     */
+    *ret_ptr = GEARMAN_SUCCESS;
+
+    return strdup(retstr);
+}
+
 
 int main(void){
     //Create the worker
@@ -56,7 +111,13 @@ int main(void){
 
     //register function, (worker, job_queue_name, timeout, function_to_do_work, context)
     printf("Register 'image' function\n");
-    ret = gearman_worker_add_function(worker,"image",0,doing_image_work,NULL);
+    ret = gearman_worker_add_function(worker,"image",0, doing_image_work,NULL);
+    if(gearman_failed(ret)){
+        return EXIT_FAILURE;
+    }
+
+    printf("Register 'reverse' function\n");
+    ret = gearman_worker_add_function(worker,"reverse",0, reverse, NULL);
     if(gearman_failed(ret)){
         return EXIT_FAILURE;
     }
